@@ -42,7 +42,7 @@ io.on("connect", (socket) => {
   // join room chat
   socket.on("join", ({user}) => {
     // add user to room chat
-    addUser(user)
+    addUser({ ...user, socketId: socket.id })
 
     // sending to the client who joined
     socket.emit("message", {
@@ -57,7 +57,7 @@ io.on("connect", (socket) => {
     });
 
     // sending to all connected clients
-    io.emit('users', {users: getUsers()});
+    io.emit('users', getUsers());
   });
 
   // send message to room chat
@@ -73,10 +73,11 @@ io.on("connect", (socket) => {
     if (user) {
       socket.broadcast.emit("message", {
         user: "Admin",
-        text: `${user.lastName} ${user.firstName} just left chat group`,
+        message: `${user.lastName} ${user.firstName} just left chat group`,
       });
 
-      io.emit('users', {users: getUsers(user.room)});
+      // sending to all connected clients
+      io.emit('users', getUsers());
     }
   });
 });

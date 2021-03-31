@@ -15,8 +15,12 @@ module.exports.getUser = (id) =>  users.find((user) => user._id === id)
 
 module.exports.getUsers = () => users
 
-module.exports.removeUser = (id) => {
-  const index = users.findIndex((user) => user._id === id);
-  if (index !== -1) return users.splice(index, 1)[0];
-  return users
+module.exports.removeUser = (socketId) => {
+  const index = users.findIndex((user) => user.socketId === socketId);
+  if (index !== -1) {
+    const removedUser = users[index]
+    users.splice(index, 1)[0]
+    return removedUser
+  }
+  return null
 };
