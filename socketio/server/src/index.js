@@ -2,24 +2,34 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const http = require('http');
 const mongoose = require("mongoose");
+// import socket
 const socketio = require("socket.io");
 const cors = require("cors");
 
+const UserUtils = require("./utils/UserUtils")
 const usersRoute = require("./routes/users.route");
 const loginRoute = require("./routes/login.route");
 const postsRoute = require("./routes/posts.route");
+// messages route
 const messagesRoute = require("./routes/messages.route");
-const UserUtils = require("./utils/UserUtils")
 
+// utils
 const {addUser, getUsers, removeUser} = UserUtils
 
 const app = express();
 const server = http.createServer(app);
+// connect socketio with server
 const io = socketio(server);
 const port = 8080;
 
 app.use(bodyParser.json());
 app.use(cors());
+
+app.use("/users", usersRoute);
+app.use("/login", loginRoute);
+app.use("/posts", postsRoute);
+// use messages route
+app.use("/messages", messagesRoute);
 
 mongoose.connect("mongodb://localhost:27017/social-network-app", (err) => {
   if (err) {
@@ -27,41 +37,41 @@ mongoose.connect("mongodb://localhost:27017/social-network-app", (err) => {
   }
 });
 
-app.use("/users", usersRoute);
-app.use("/login", loginRoute);
-app.use("/posts", postsRoute);
-app.use("/messages", messagesRoute);
-
+// connect io from client
 io.on("connect", (socket) => {
-  socket.on("join", (user) => {
-    console.log("🚀 ~ file: index.js ~ line 37 ~ socket.on ~ user", user)
+  // join room chat
+  socket.on("join", ({user}) => {
+    // add user to room chat
     addUser(user)
-    
+
+    // sending to the client who joined
     socket.emit("message", {
       user: "Admin",
-      text: `Welcome ${user.lastName} ${user.firstName} (${user.email}).`,
+      message: `Welcome ${user.lastName} ${user.firstName} (${user.email}).`,
+    });
+    
+    // sending to all clients except client who joined
+    socket.broadcast.emit("message", {
+      user: "Admin",
+      message: `${user.lastName} ${user.firstName} joined chat group`,
     });
 
-    socket.broadcast
-      .emit("message", {
-        user: "Admin",
-        text: `${user.lastName} ${user.firstName} joined chat group`,
-      });
-
+    // sending to all connected clients
     io.emit('users', {users: getUsers()});
   });
 
+  // send message to room chat
   socket.on("sendMessage", (user, message, callback) => {
-    socket.broadcast.emit("message", { user, message });
     io.emit('message', { user, message });
     callback();
   });
 
+  // out room chat
   socket.on("disconnect", () => {
     const user = removeUser(socket.id);
 
     if (user) {
-      io.to(user.room).emit("message", {
+      socket.broadcast.emit("message", {
         user: "Admin",
         text: `${user.lastName} ${user.firstName} just left chat group`,
       });

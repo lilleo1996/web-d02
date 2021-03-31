@@ -7,17 +7,25 @@
   text-align: left;
   cursor: pointer;
   box-shadow: 3px 5px 4px #888888;
+
+  &__content {
+    padding-bottom: 24px;
+    border-bottom: 1px solid black;
+  }
+
+  &__comment-creation {
+    display: flex;
+
+    &__button {
+      height: 36px;
+      font-size: 16px;
+    }
+  } 
 }
 
-.post__author {
-  font-size: 20px;
-  font-weight: bold;
-}
 
-.post__content {
-  padding-bottom: 24px;
-  border-bottom: 1px solid black;
-}
+
+
 
 .post--clicked {
   background-color: gainsboro;

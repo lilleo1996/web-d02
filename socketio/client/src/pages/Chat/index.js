@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import queryString from "query-string";
 import io from "socket.io-client";
 import axios from 'axios';
 
@@ -16,28 +15,33 @@ const Chat = ({ location }) => {
   const [users, setUsers] = useState("");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-
+  
   useEffect(() => {
     const { user } = location.state
     setUser(user);
-    socket = io(URL);
+    // connect io with http://localhost:8080
+    socket = io(URL, {transports: ['websocket']});
+
+    // join room chat
     socket.emit("join", { user });
   }, [location.state]);
 
   useEffect(() => {
     axios.get(`${URL}/messages`)
     .then(function (response) {
-      setMessages((messages) => [...messages, ...response.data.messages]);  
+      setMessages((messages) => [...response.data.data.messages, ...messages]);  
     })
     .catch(function (error) {
       console.log("error", error)
     });
 
+    // listen message which fired server
     socket.on("message", (message) => {
       setMessages((messages) => [...messages, message]);
     });
 
-    socket.on("roomData", ({ users }) => {
+    // listen users which fired server
+    socket.on("users", (users) => {
       setUsers(users);
     });
   }, []);
@@ -46,7 +50,10 @@ const Chat = ({ location }) => {
     event.preventDefault();
 
     if (message) {
+      // send message to room chat
       socket.emit("sendMessage", user, message, () => setMessage(""));
+      
+      // save message to database, not effect 
       axios.post(`${URL}/messages`, {
         user, message
       })

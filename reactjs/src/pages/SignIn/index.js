@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Link, useHistory } from 'react-router-dom';
-// import queryString from "query-string";
 import axios from 'axios';
 
 import { LIVE_CHAT, SIGN_IN, SIGN_UP } from "constants/variables";
@@ -9,6 +8,7 @@ import 'style.scss'
 
 const SingIn = ({ location }) => {
   let history = useHistory();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("")
   const [isFailure, setIsFailure] = useState(false)
@@ -58,16 +58,17 @@ const SingIn = ({ location }) => {
           {SIGN_IN}
         </button>
         <div className="sign-in__fail-text">{isFailure ? 'Email hoặc mật khẩu không chính xác' : ''}</div>
-        <Link to={`/sign-up`}>
+        {/* <Link to={`/sign-up`}> */}
           <button
             className={
               "sign-in__button sign-in__button--green sign-in__button--small mt-20"
             }
             type="submit"
+            onClick={() => history.push('/chat', {state: {user: 'Hieu'}})}
           >
             {SIGN_UP}
           </button>
-        </Link>
+        {/* </Link> */}
       </div>
     </div>
   );
